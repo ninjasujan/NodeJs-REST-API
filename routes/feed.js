@@ -14,7 +14,7 @@ router.post(
   [
     body("title")
       .trim()
-      .isLength({ min: 5 })
+      .isLength({ min: 8 })
       .withMessage("Title field must be 5 char long"),
     body("content")
       .trim()

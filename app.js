@@ -1,11 +1,13 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
+const path = require("path");
 
 const feedRoutes = require("./routes/feed");
 
 const app = express();
 
+app.use("/images", express.static(path.join(__dirname, "images")));
 // app.use(bodyParser.urlencoded()); // x-www-form-urlencoded <form>
 app.use(bodyParser.json()); // application/json
 
@@ -19,7 +21,17 @@ app.use((req, res, next) => {
   next();
 });
 
+// Handling api request
 app.use("/feed", feedRoutes);
+
+//general error handling middleware
+app.use((err, req, res, next) => {
+  const status = err.statusCode || 500;
+  const message = err.message;
+  return res.status(status).json({
+    message: message,
+  });
+});
 
 mongoose
   .connect("mongodb://localhost:27017/media")
