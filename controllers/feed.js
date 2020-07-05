@@ -1,8 +1,27 @@
-exports.getFeed = (req, res, next) => {
+exports.getPosts = (req, res, next) => {
+  console.log("feed/posts");
   res.status(200).json({
     posts: [
-      { title: "First Post", description: "Clicked when you needed" },
-      { title: "Second Post", description: "Clicked in Burming Hamn" },
+      {
+        _id: "1",
+        title: "First Post",
+        content: "Clicked when you needed",
+        imageUrl: "images/image1.jpg",
+        creator: {
+          author: "Maximilian",
+        },
+        date: new Date().toString(),
+      },
+      {
+        _id: "2",
+        title: "Second Post",
+        content: "Nature green",
+        imageUrl: "images/image2.jpg",
+        creator: {
+          name: "Maximilian",
+        },
+        date: new Date().toString(),
+      },
     ],
   });
 };

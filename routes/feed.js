@@ -1,9 +1,13 @@
 const express = require("express");
+
+const { getPosts, createPost } = require("../controllers/feed");
+
 const router = express.Router();
 
-const { getFeed, createPost } = require("../controllers/feed");
+// GET /feed/posts
+router.get("/posts", getPosts);
 
-router.get("/posts", getFeed);
+// POST /feed/post
 router.post("/post", createPost);
 
 module.exports = router;
