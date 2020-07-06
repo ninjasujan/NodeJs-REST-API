@@ -3,8 +3,7 @@ const router = express.Router();
 const { body } = require("express-validator");
 const User = require("../models/User");
 
-const { signUp } = require("../controllers/auth");
-const { sign } = require("crypto");
+const { signUp, login } = require("../controllers/auth");
 
 router.put(
   "/signup",
@@ -25,5 +24,7 @@ router.put(
   ],
   signUp
 );
+
+router.post("/login", login);
 
 module.exports = router;
