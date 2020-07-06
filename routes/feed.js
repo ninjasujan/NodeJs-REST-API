@@ -1,5 +1,6 @@
 const express = require("express");
 const { body } = require("express-validator");
+const isAuth = require("../middleware/isAuth");
 
 const {
   getPosts,
@@ -12,7 +13,7 @@ const {
 const router = express.Router();
 
 // GET /feed/posts
-router.get("/posts", getPosts);
+router.get("/posts", isAuth, getPosts);
 
 // POST /feed/post
 router.post(
