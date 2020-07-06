@@ -6,6 +6,7 @@ const multer = require("multer");
 const { v4: uuid } = require("uuid");
 
 const feedRoutes = require("./routes/feed");
+const authRoutes = require("./routes/auth");
 
 const app = express();
 
@@ -51,13 +52,16 @@ app.use((req, res, next) => {
 
 // Handling api request
 app.use("/feed", feedRoutes);
+app.use("/auth", authRoutes);
 
 //general error handling middleware
 app.use((err, req, res, next) => {
   const status = err.statusCode || 500;
   const message = err.message;
+  const data = err.data;
   return res.status(status).json({
     message: message,
+    data: data,
   });
 });
 
