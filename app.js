@@ -2,14 +2,42 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const path = require("path");
+const multer = require("multer");
+const { v4: uuid } = require("uuid");
 
 const feedRoutes = require("./routes/feed");
 
 const app = express();
 
+/* storage configuration for file upload*/
+const fileStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "images");
+  },
+  filename: (req, file, cb) => {
+    cb(null, uuid() + file.originalname);
+  },
+});
+
+const fileFilters = (req, file, cb) => {
+  if (
+    file.mimetype === "image/png" ||
+    file.mimetype === "image/jpg" ||
+    file.mimetype === "image/jpeg"
+  ) {
+    cb(null, true);
+  } else {
+    cb(null, false);
+  }
+};
+
 app.use("/images", express.static(path.join(__dirname, "images")));
 // app.use(bodyParser.urlencoded()); // x-www-form-urlencoded <form>
 app.use(bodyParser.json()); // application/json
+// file upload middlwrare - multer
+app.use(
+  multer({ storage: fileStorage, fileFilter: fileFilters }).single("image")
+);
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");

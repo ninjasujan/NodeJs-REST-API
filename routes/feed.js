@@ -1,7 +1,7 @@
 const express = require("express");
 const { body } = require("express-validator");
 
-const { getPosts, createPost } = require("../controllers/feed");
+const { getPosts, createPost, getPost } = require("../controllers/feed");
 
 const router = express.Router();
 
@@ -14,7 +14,7 @@ router.post(
   [
     body("title")
       .trim()
-      .isLength({ min: 8 })
+      .isLength({ min: 5 })
       .withMessage("Title field must be 5 char long"),
     body("content")
       .trim()
@@ -23,5 +23,7 @@ router.post(
   ],
   createPost
 );
+
+router.get("/post/:postId", getPost);
 
 module.exports = router;
