@@ -2,6 +2,8 @@ const { validationResult } = require("express-validator");
 const Post = require("../models/Post");
 const fs = require("fs");
 const path = require("path");
+const User = require("../models/User");
+const { use } = require("../routes/feed");
 
 exports.getPosts = (req, res, next) => {
   const currentPage = req.query.page || 1;
@@ -31,7 +33,6 @@ exports.getPosts = (req, res, next) => {
 };
 
 exports.createPost = (req, res, next) => {
-  console.log("[feed.js] controller", req.body);
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const error = new Error(
@@ -53,17 +54,26 @@ exports.createPost = (req, res, next) => {
     title: req.body.title,
     content: req.body.content,
     imageUrl: imageUrl,
-    creator: {
-      name: "Maximilian",
-    },
+    creator: req.userId,
   });
+
+  let creator;
 
   post
     .save()
-    .then((post) => {
+    .then((postDoc) => {
+      return User.findById(req.userId);
+    })
+    .then((user) => {
+      creator = user;
+      user.posts.push(post);
+      return user.save();
+    })
+    .then((result) => {
       return res.status(201).json({
         message: "Post created successfully.",
         post: post,
+        creator: { _id: creator._id, name: creator.name },
       });
     })
     .catch((err) => {
@@ -125,6 +135,11 @@ exports.updatePost = (req, res, next) => {
         error.statusCode = 404;
         throw error;
       }
+      if (req.userId.toString() !== post.creator.toString()) {
+        const error = new Error("Not authorized.!");
+        error.statusCode = 403;
+        throw error;
+      }
       if (imageUrl != post.imageUrl) {
         console.log("[feed.js] clearing old image from DB");
         clearImage(post.imageUrl);
@@ -159,9 +174,21 @@ exports.deletePost = (req, res, next) => {
         error.statusCode = 404;
         throw error;
       }
+      if (req.userId.toString() !== post.creator.toString()) {
+        const error = new Error("Not authorized.!");
+        error.statusCode = 403;
+        throw error;
+      }
       return Post.findByIdAndRemove(postId);
     })
     .then((post) => {
+      return User.findById(req.userId);
+    })
+    .then((user) => {
+      user.posts.pull(postId);
+      return user.save();
+    })
+    .then((result) => {
       return res.status(200).json({ message: "Post deleted." });
     })
     .catch((err) => {
@@ -169,5 +196,54 @@ exports.deletePost = (req, res, next) => {
         err.statusCode = 500;
       }
       next(err);
+    });
+};
+
+exports.getStatus = (req, res, next) => {
+  const userId = req.userId;
+  User.findById(userId)
+    .then((user) => {
+      if (!user) {
+        const error = new Error("User not found.");
+        error.statusCode = 404;
+        throw error;
+      }
+      return res
+        .status(200)
+        .json({ message: "Status sent", status: user.status });
+    })
+    .catch((err) => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    });
+};
+
+exports.updateStatus = (req, res, next) => {
+  const userId = req.userId;
+  const status = req.body.status;
+  console.log("[feed.js] status", status);
+  User.findOneAndUpdate(userId)
+    .then((user) => {
+      if (!user) {
+        const error = new Error("User not authorized.");
+        error.statusCode = 403;
+        throw error;
+      }
+      user.status = status;
+      return user.save();
+    })
+    .then((result) => {
+      return res.status(200).json({
+        message: "User status updated.",
+        status: result.status,
+      });
+    })
+    .catch((err) => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      throw err;
     });
 };

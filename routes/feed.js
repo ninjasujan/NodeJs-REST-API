@@ -8,6 +8,8 @@ const {
   getPost,
   updatePost,
   deletePost,
+  getStatus,
+  updateStatus,
 } = require("../controllers/feed");
 
 const router = express.Router();
@@ -28,10 +30,11 @@ router.post(
       .isLength({ min: 5 })
       .withMessage("Title field must be 5 char long"),
   ],
+  isAuth,
   createPost
 );
 
-router.get("/post/:postId", getPost);
+router.get("/post/:postId", isAuth, getPost);
 
 router.put(
   "/post/:postId",
@@ -45,9 +48,14 @@ router.put(
       .isLength({ min: 5 })
       .withMessage("Title field must be 5 char long"),
   ],
+  isAuth,
   updatePost
 );
 
-router.delete("/feed/post/:postId", deletePost);
+router.delete("/post/:postId", isAuth, deletePost);
+
+router.get("/status", isAuth, getStatus);
+
+router.put("/status", isAuth, updateStatus);
 
 module.exports = router;
